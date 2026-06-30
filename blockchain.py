@@ -1,4 +1,7 @@
-import functools
+from functools import reduce
+import hashlib as hl
+import json
+from collections import OrderedDict
 
 MINING_REWARD = 10
 
@@ -8,25 +11,26 @@ print(f"Current participants: {participants}")
 genesis_block = {
     'previous_hash': None,
     'index': 0,
-    'transactions': []
+    'transactions': [],
+    'proof': 100
 }
 blockchain = [genesis_block]
 open_transactions = []
-
-def get_last_blockchain_value():
-    if len(blockchain) == 0:
-        return None
-    return blockchain[-1]
 
 
 def add_transaction(sender, recipient, amount=1.0):
     participants.add(sender)
     participants.add(recipient)
-    transaction = {
-        'sender': sender,
-        'recipient': recipient,
-        'amount': amount
-    }
+    # transaction = {
+    #     'sender': sender,
+    #     'recipient': recipient,
+    #     'amount': amount
+    # }
+    transaction = OrderedDict([
+        ('sender', sender),
+        ('recipient', recipient),
+        ('amount', amount)
+    ])
     if verify_transaction(transaction):
         open_transactions.append(transaction)
         return True
@@ -35,25 +39,48 @@ def add_transaction(sender, recipient, amount=1.0):
         return False
 
 
+def calculate_hash(block):
+    block_string = json.dumps(block, sort_keys=True)
+    return hl.sha256(block_string.encode()).hexdigest()
+
+
+def valid_proof(transactions, previous_hash, proof, difficulty=2):
+    guess = (str(transactions) + str(previous_hash) + str(proof)).encode()
+    guess_hash = hl.sha256(guess).hexdigest()
+    return guess_hash[0:difficulty] == "0" * difficulty
+
+
+def proof_of_work():
+    last_block = blockchain[-1]
+    previous_hash = calculate_hash(last_block)
+    proof = 0
+    while not valid_proof(open_transactions, previous_hash, proof):
+        proof += 1
+    return proof
+
+
 def mine_block():
-    reward_transaction = {
-        'sender': 'MINING',
-        'recipient': owner,
-        'amount': MINING_REWARD
-    }
+    proof = proof_of_work()
+    # reward_transaction = {
+    #     'sender': 'MINING',
+    #     'recipient': owner,
+    #     'amount': MINING_REWARD
+    # }
+    reward_transaction = OrderedDict([
+        ('sender', 'MINING'),
+        ('recipient', owner),
+        ('amount', MINING_REWARD)
+    ])
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
     block = {
         'previous_hash': calculate_hash(blockchain[-1]),
         'index': len(blockchain),
-        'transactions': copied_transactions
+        'transactions': copied_transactions,
+        'proof': proof
     }
     blockchain.append(block)
     open_transactions.clear()
-
-
-def calculate_hash(block):
-    return "-".join([str(block[key]) for key in block])
 
 
 def verify_transaction(transaction):
@@ -86,7 +113,7 @@ def get_balance(participant):
     # for tx_list in tx_sender:
     #     for txn in tx_list:
     #         amount_sent += txn
-    amount_sent = functools.reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, [txn for tx_list in tx_sender for txn in tx_list], 0)
+    amount_sent = reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, [txn for tx_list in tx_sender for txn in tx_list], 0)
 
     tx_recipient = [[tx['amount'] for tx in block['transactions'] if tx['recipient'] == participant] for block in blockchain]
     # amount_received = 0
@@ -123,14 +150,16 @@ def verify_chain():
     for index, block in enumerate(blockchain):
         if index == 0:
             continue
-        elif block['previous_hash'] != calculate_hash(blockchain[index - 1]):
+        if block['previous_hash'] != calculate_hash(blockchain[index - 1]):
+            return False
+        if not valid_proof(block['transactions'][:-1], block['previous_hash'], block['proof']):
             return False
     return True
 
 
 while True:
     print("\nplease choose")
-    print("1. Add a new transaction value")
+    print("1. Add a new transaction")
     print("2. Output the open transactions")
     print("3. Mine a new block")
     print("4. Output the blockchain blocks")
