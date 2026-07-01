@@ -1,7 +1,7 @@
 from functools import reduce
-import hashlib as hl
-import json
 from collections import OrderedDict
+
+import hash_util as hu
 
 MINING_REWARD = 10
 
@@ -21,11 +21,6 @@ open_transactions = []
 def add_transaction(sender, recipient, amount=1.0):
     participants.add(sender)
     participants.add(recipient)
-    # transaction = {
-    #     'sender': sender,
-    #     'recipient': recipient,
-    #     'amount': amount
-    # }
     transaction = OrderedDict([
         ('sender', sender),
         ('recipient', recipient),
@@ -39,20 +34,15 @@ def add_transaction(sender, recipient, amount=1.0):
         return False
 
 
-def calculate_hash(block):
-    block_string = json.dumps(block, sort_keys=True)
-    return hl.sha256(block_string.encode()).hexdigest()
-
-
 def valid_proof(transactions, previous_hash, proof, difficulty=2):
-    guess = (str(transactions) + str(previous_hash) + str(proof)).encode()
-    guess_hash = hl.sha256(guess).hexdigest()
+    guess = (str(transactions) + str(previous_hash) + str(proof))
+    guess_hash = hu.hash_string(guess)
     return guess_hash[0:difficulty] == "0" * difficulty
 
 
 def proof_of_work():
     last_block = blockchain[-1]
-    previous_hash = calculate_hash(last_block)
+    previous_hash = hu.hash_block(last_block)
     proof = 0
     while not valid_proof(open_transactions, previous_hash, proof):
         proof += 1
@@ -66,15 +56,18 @@ def mine_block():
     #     'recipient': owner,
     #     'amount': MINING_REWARD
     # }
-    reward_transaction = OrderedDict([
-        ('sender', 'MINING'),
-        ('recipient', owner),
-        ('amount', MINING_REWARD)
-    ])
+    # 
+    # I prefer the below using kwargs as opposed to creating 
+    # the OrderedDict with a list of tuples
+    reward_transaction = OrderedDict(
+        sender='MINING',
+        recipient=owner,
+        amount=MINING_REWARD
+    )
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
     block = {
-        'previous_hash': calculate_hash(blockchain[-1]),
+        'previous_hash': hu.hash_block(blockchain[-1]),
         'index': len(blockchain),
         'transactions': copied_transactions,
         'proof': proof
@@ -108,21 +101,12 @@ def get_balance(participant):
     tx_sender = [[tx['amount'] for tx in block['transactions'] if tx['sender'] == participant] for block in blockchain]
     open_tx_sender = [tx['amount'] for tx in open_transactions if tx['sender'] == participant]
     tx_sender.append(open_tx_sender)
-    print(f"Transactions sent by {participant}: {tx_sender}")
-    # amount_sent = 0
-    # for tx_list in tx_sender:
-    #     for txn in tx_list:
-    #         amount_sent += txn
+    # using reduce instead of sum to show example reduce
     amount_sent = reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, [txn for tx_list in tx_sender for txn in tx_list], 0)
 
     tx_recipient = [[tx['amount'] for tx in block['transactions'] if tx['recipient'] == participant] for block in blockchain]
-    # amount_received = 0
-    # for tx_list in tx_recipient:
-    #     for txn in tx_list:
-    #         amount_received += txn
     amount_received = sum([txn for tx_list in tx_recipient for txn in tx_list])
 
-    print(f" Balance for {participant} -> Amount sent: {amount_sent:.2f}, Amount received: {amount_received:.2f}")
     return amount_received - amount_sent
 
 
@@ -150,7 +134,7 @@ def verify_chain():
     for index, block in enumerate(blockchain):
         if index == 0:
             continue
-        if block['previous_hash'] != calculate_hash(blockchain[index - 1]):
+        if block['previous_hash'] != hu.hash_block(blockchain[index - 1]):
             return False
         if not valid_proof(block['transactions'][:-1], block['previous_hash'], block['proof']):
             return False
@@ -179,7 +163,6 @@ while True:
         case "3":
             mine_block()
             print_blockchain_elements()
-            # print(f"Balance of {owner}: {get_balance(owner)}")
             get_balances()
             if not verify_chain():
                 print("The blockchain has been manipulated!")
