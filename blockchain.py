@@ -1,6 +1,5 @@
 from functools import reduce
-from collections import OrderedDict
-
+import json
 import hash_util as hu
 
 MINING_REWARD = 10
@@ -18,16 +17,39 @@ blockchain = [genesis_block]
 open_transactions = []
 
 
+def load_data():
+    with open('blockchain.txt', mode='r') as f:
+        file_content = f.readlines()
+        global blockchain
+        global open_transactions
+        if len(file_content) < 2:
+            blockchain = [genesis_block]
+            open_transactions = []
+        else:
+            blockchain = json.loads(file_content[0].strip())
+            open_transactions = json.loads(file_content[1].strip())
+
+
+load_data()
+
+
+def save_data():
+    with open('blockchain.txt', mode='w') as f:
+        f.write(json.dumps(blockchain) + "\n")
+        f.write(json.dumps(open_transactions) + "\n")
+
+
 def add_transaction(sender, recipient, amount=1.0):
     participants.add(sender)
     participants.add(recipient)
-    transaction = OrderedDict([
-        ('sender', sender),
-        ('recipient', recipient),
-        ('amount', amount)
-    ])
+    transaction = {
+        'sender': sender,
+        'recipient': recipient,
+        'amount': amount,
+    }
     if verify_transaction(transaction):
         open_transactions.append(transaction)
+        save_data()
         return True
     else:
         print(f"Transaction from {sender} to {recipient} for {amount} is invalid due to insufficient balance.")
@@ -51,19 +73,11 @@ def proof_of_work():
 
 def mine_block():
     proof = proof_of_work()
-    # reward_transaction = {
-    #     'sender': 'MINING',
-    #     'recipient': owner,
-    #     'amount': MINING_REWARD
-    # }
-    # 
-    # I prefer the below using kwargs as opposed to creating 
-    # the OrderedDict with a list of tuples
-    reward_transaction = OrderedDict(
-        sender='MINING',
-        recipient=owner,
-        amount=MINING_REWARD
-    )
+    reward_transaction = {
+        'sender': 'MINING',
+        'recipient': owner,
+        'amount': MINING_REWARD,
+    }
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
     block = {
@@ -74,6 +88,7 @@ def mine_block():
     }
     blockchain.append(block)
     open_transactions.clear()
+    save_data()
 
 
 def verify_transaction(transaction):

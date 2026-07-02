@@ -1,0 +1,2 @@
+[{"previous_hash": null, "index": 0, "transactions": [], "proof": 100}]
+[]
