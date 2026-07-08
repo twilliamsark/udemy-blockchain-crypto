@@ -2,41 +2,46 @@ from functools import reduce
 import json
 import hash_util as hu
 
-MINING_REWARD = 10
 
-owner='Todd'
-participants = {owner}
-print(f"Current participants: {participants}")
-genesis_block = {
+MINING_REWARD = 10
+GENESIS_BLOCK = {
     'previous_hash': None,
     'index': 0,
     'transactions': [],
     'proof': 100
 }
-blockchain = [genesis_block]
+
+
+owner='Todd'
+participants = {owner}
+print(f"Current participants: {participants}")
+blockchain = []
 open_transactions = []
 
 
 def load_data():
-    with open('blockchain.txt', mode='r') as f:
-        file_content = f.readlines()
-        global blockchain
-        global open_transactions
-        if len(file_content) < 2:
-            blockchain = [genesis_block]
-            open_transactions = []
-        else:
+    global blockchain
+    global open_transactions
+    try:
+        with open('blockchain.txt', mode='r') as f:
+            file_content = f.readlines()
             blockchain = json.loads(file_content[0].strip())
             open_transactions = json.loads(file_content[1].strip())
+    except (IOError, IndexError):
+        blockchain = [GENESIS_BLOCK]
+        open_transactions = []
 
 
 load_data()
 
 
 def save_data():
-    with open('blockchain.txt', mode='w') as f:
-        f.write(json.dumps(blockchain) + "\n")
-        f.write(json.dumps(open_transactions) + "\n")
+    try:
+        with open('blockchain.txt', mode='w') as f:
+            f.write(json.dumps(blockchain) + "\n")
+            f.write(json.dumps(open_transactions) + "\n")
+    except IOError:
+        print("Saving failed!")
 
 
 def add_transaction(sender, recipient, amount=1.0):
