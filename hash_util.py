@@ -7,5 +7,6 @@ def hash_string(source):
 
 
 def hash_block(block):
-    block_string = json.dumps(block, sort_keys=True)
+    hashable_block = block.__dict__.copy()
+    block_string = json.dumps(hashable_block, sort_keys=True)
     return hash_string(block_string)
