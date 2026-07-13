@@ -1,6 +1,8 @@
 from time import time
+from printable import Printable
 
-class Block:
+
+class Block(Printable):
     def __init__(self, 
                  index, 
                  previous_hash, 
@@ -12,7 +14,4 @@ class Block:
         self.timestamp = timestamp or time()
         self.transactions = transactions
         self.proof = proof
-
-    def __repr__(self):
-        return f"Block(index={self.index}, previous_hash={self.previous_hash}, timestamp={self.timestamp}, transactions={self.transactions}, proof={self.proof})"
-    
+        
