@@ -67,6 +67,31 @@ load_data()
 def save_data():
     try:
         with open('blockchain.txt', mode='w') as f:
+            # dict_chain = []
+            # for block_el in blockchain:
+            #     dict_txs = []
+            #     for tx in block_el.transactions:
+            #         dict_txs.append(tx.__dict__)
+            #     new_block = Block(
+            #         block_el.index,
+            #         block_el.previous_hash,
+            #         dict_txs,
+            #         block_el.proof,
+            #         block_el.timestamp
+            #     )
+            #     dict_chain.append(new_block.__dict__)
+            # f.write(json.dumps(dict_chain) + "\n")
+
+            # Convert the blockchain into a list of dictionaries that can be
+            # serialized into JSON. Each block is converted into a dictionary, 
+            # and each transaction within the block is also converted into a 
+            # dictionary. This ensures that the blockchain can be saved to a 
+            # file in a JSON-compatible format.
+            # 
+            # Note: block_el is only ever read here. We create a new Block 
+            # instance for each block in the blockchain to ensure that we have 
+            # a proper dictionary representation for serialization, without 
+            # modifying the original blockchain objects.
             saveable_chain = [block.__dict__ for block in [Block(
                 block_el.index,
                 block_el.previous_hash,
