@@ -17,8 +17,6 @@ GENESIS_BLOCK = {
 
 
 owner='Todd'
-participants = {owner}
-print(f"Current participants: {participants}")
 blockchain = []
 open_transactions = []
 
@@ -144,8 +142,6 @@ def add_transaction(sender, recipient, amount=1.0):
     transaction = Transaction(sender, recipient, amount)
     if verify_transaction(transaction):
         open_transactions.append(transaction)
-        participants.add(sender)
-        participants.add(recipient)
         save_data()
         return True
     else:
@@ -214,17 +210,12 @@ def verify_chain():
     return True
 
 
-def get_balances():
-    [print(f"{participant}: {get_balance(participant)}") for participant in participants]
-
-
 while True:
     print("\nplease choose")
     print("1. Add a new transaction")
-    print("2. Output the open transactions")
-    print("3. Mine a new block")
+    print("2. Mine a new block")
+    print("3. Output the open transactions")
     print("4. Output the blockchain blocks")
-    print("5. Output participants")
     print("q. Quit")
 
     match get_user_choice():
@@ -234,25 +225,21 @@ while True:
             print_open_transactions()
             print_verify_all_transactions()
         case "2":
-            print_open_transactions()
-            print_verify_all_transactions()
-        case "3":
             mine_block()
             print_blockchain_elements()
-            get_balances()
             if not verify_chain():
                 print("The blockchain has been manipulated!")
             else:
                 print("The blockchain is valid.")
+        case "3":
+            print_open_transactions()
+            print_verify_all_transactions()
         case "4":
             print_blockchain_elements()
             if not verify_chain():
                 print("The blockchain has been manipulated!")
             else:
                 print("The blockchain is valid.")
-        case "5":
-            print(f"Current participants: {participants}")
-            get_balances()
         case "q":
             break
         case _:
