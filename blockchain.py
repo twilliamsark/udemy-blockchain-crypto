@@ -1,11 +1,10 @@
 from functools import reduce
 import json
 
-
 import hash_util as hu
 from block import Block
 from transaction import Transaction
-
+from verification import Verification
 
 MINING_REWARD = 10
 GENESIS_BLOCK = {
@@ -105,17 +104,12 @@ def save_data():
         print("Saving failed!")
 
 
-def valid_proof(transactions, previous_hash, proof, difficulty=2):
-    guess = (str([tx.to_ordered_dict() for tx in transactions]) + str(previous_hash) + str(proof))
-    guess_hash = hu.hash_string(guess)
-    return guess_hash[0:difficulty] == "0" * difficulty
-
-
 def proof_of_work():
     last_block = blockchain[-1]
     previous_hash = hu.hash_block(last_block)
     proof = 0
-    while not valid_proof(open_transactions, previous_hash, proof):
+    verifier = Verification()
+    while not verifier.validate_proof(open_transactions, previous_hash, proof):
         proof += 1
     return proof
 
@@ -133,14 +127,10 @@ def get_balance(participant):
     return amount_received - amount_sent
 
 
-def verify_transaction(transaction):
-    sender_balance = get_balance(transaction.sender)
-    return sender_balance >= transaction.amount
-
-
 def add_transaction(sender, recipient, amount=1.0):
     transaction = Transaction(sender, recipient, amount)
-    if verify_transaction(transaction):
+    verifier = Verification()
+    if verifier.verify_transaction(transaction, get_balance):
         open_transactions.append(transaction)
         save_data()
         return True
@@ -167,13 +157,10 @@ def mine_block():
     save_data()
 
 
-def verify_all_transactions():
-    return all([verify_transaction(tx) for tx in open_transactions])
-
-
 def print_verify_all_transactions():
     if (len(open_transactions) > 0):
-        if verify_all_transactions():
+        verifier = Verification()
+        if verifier.verify_all_transactions(open_transactions, get_balance):
             print("All open transactions are valid.")
         else:
             print("Some open transactions are invalid.")
@@ -199,17 +186,6 @@ def print_open_transactions():
         print(f"Transaction {index}: {transaction}")
 
 
-def verify_chain():
-    for index, block in enumerate(blockchain):
-        if index == 0:
-            continue
-        if block.previous_hash != hu.hash_block(blockchain[index - 1]):
-            return False
-        if not valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
-            return False
-    return True
-
-
 while True:
     print("\nplease choose")
     print("1. Add a new transaction")
@@ -217,7 +193,7 @@ while True:
     print("3. Output the open transactions")
     print("4. Output the blockchain blocks")
     print("q. Quit")
-
+    verifier = Verification()
     match get_user_choice():
         case "1":
             if add_transaction(owner, *get_transaction_value()):
@@ -227,7 +203,7 @@ while True:
         case "2":
             mine_block()
             print_blockchain_elements()
-            if not verify_chain():
+            if not verifier.verify_chain(blockchain):
                 print("The blockchain has been manipulated!")
             else:
                 print("The blockchain is valid.")
@@ -236,7 +212,7 @@ while True:
             print_verify_all_transactions()
         case "4":
             print_blockchain_elements()
-            if not verify_chain():
+            if not verifier.verify_chain(blockchain):
                 print("The blockchain has been manipulated!")
             else:
                 print("The blockchain is valid.")
