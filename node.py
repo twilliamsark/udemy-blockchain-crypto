@@ -20,21 +20,25 @@ class Node:
 
 
     def print_verify_all_transactions(self):
-        if (len(self.blockchain.open_transactions) > 0):
-            if Verification.verify_all_transactions(self.blockchain.open_transactions, self.blockchain.get_balance):
+        if (len(self.blockchain.get_open_transactions()) > 0):
+            if Verification.verify_all_transactions(self.blockchain.get_open_transactions(), self.blockchain.get_balance):
                 print("All open transactions are valid.")
             else:
                 print("Some open transactions are invalid.")
 
 
     def print_blockchain_elements(self):
-        for index, block in enumerate(self.blockchain.chain):
+        for index, block in enumerate(self.blockchain.get_chain()):
             print(f"Block {index}: {block}")
 
 
     def print_open_transactions(self):
-        for index, transaction in enumerate(self.blockchain.open_transactions):
+        for index, transaction in enumerate(self.blockchain.get_open_transactions()):
             print(f"Transaction {index}: {transaction}")
+
+
+    def print_balance(self):
+        print(f"Your balance for {self.hosting_node_id} is: {self.blockchain.get_balance()}")
 
 
     def listen_for_input(self):
@@ -52,24 +56,24 @@ class Node:
                         print("Transaction added successfully.")
                     self.print_open_transactions()
                     self.print_verify_all_transactions()
+                    self.print_balance()
                 case "2":
                     self.blockchain.mine_block()
                     self.print_blockchain_elements()
-                    if not Verification.verify_chain(self.blockchain.chain):
+                    if not Verification.verify_chain(self.blockchain.get_chain()):
                         print("The blockchain has been manipulated!")
                     else:
                         print("The blockchain is valid.")
                 case "3":
                     self.print_open_transactions()
-                    self.print_verify_all_transactions()
                 case "4":
                     self.print_blockchain_elements()
-                    if not Verification.verify_chain(self.blockchain.chain):
+                    if not Verification.verify_chain(self.blockchain.get_chain()):
                         print("The blockchain has been manipulated!")
                     else:
                         print("The blockchain is valid.")
                 case "5":
-                    print(f"Your balance for {self.hosting_node_id} is: {self.blockchain.get_balance()}")
+                    self.print_balance()
                 case "q":
                     break
                 case _:

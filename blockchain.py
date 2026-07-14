@@ -18,8 +18,8 @@ GENESIS_BLOCK = {
 
 class Blockchain:
     def __init__(self, hosting_node_id):
-        self.open_transactions = []
-        self.chain = [Block(
+        self.__open_transactions = []
+        self.__chain = [Block(
             GENESIS_BLOCK['index'],
             GENESIS_BLOCK['previous_hash'],
             GENESIS_BLOCK['transactions'],
@@ -28,6 +28,14 @@ class Blockchain:
         )]
         self.hosting_node_id = hosting_node_id
         self.load_data()
+
+
+    def get_chain(self):
+        return self.__chain[:]
+
+
+    def get_open_transactions(self):
+        return self.__open_transactions[:]
 
 
     def load_data(self):
@@ -46,14 +54,14 @@ class Blockchain:
                         block['timestamp']
                     )
                     updated_blockchain.append(updated_block)
-                self.chain = updated_blockchain
+                self.__chain = updated_blockchain
 
                 open_transactions = json.loads(file_content[1].strip())
                 updated_transactions = []
                 for tx in open_transactions:
                     converted_tx = Transaction(tx['sender'], tx['recipient'], tx['amount'])
                     updated_transactions.append(converted_tx)
-                self.open_transactions = updated_transactions
+                self.__open_transactions = updated_transactions
 
         except (IOError, IndexError):
             pass
@@ -93,11 +101,11 @@ class Blockchain:
                     [tx.__dict__ for tx in block_el.transactions],
                     block_el.proof,
                     block_el.timestamp
-                ) for block_el in self.chain]]   
+                ) for block_el in self.__chain]]   
                 f.write(json.dumps(saveable_chain) + "\n")
 
                 savable_transactions = [
-                    transaction.__dict__ for transaction in self.open_transactions
+                    transaction.__dict__ for transaction in self.__open_transactions
                 ]
                 f.write(json.dumps(savable_transactions) + "\n")
         except IOError:
@@ -105,10 +113,10 @@ class Blockchain:
 
 
     def proof_of_work(self):
-        last_block = self.chain[-1]
+        last_block = self.__chain[-1]
         previous_hash = hu.hash_block(last_block)
         proof = 0
-        while not Verification.validate_proof(self.open_transactions, previous_hash, proof):
+        while not Verification.validate_proof(self.__open_transactions, previous_hash, proof):
             proof += 1
         return proof
 
@@ -117,10 +125,10 @@ class Blockchain:
         participant = self.hosting_node_id
         tx_sender = [
             [tx.amount for tx in block.transactions if tx.sender == participant] 
-            for block in self.chain
+            for block in self.__chain
         ]
         open_tx_sender = [
-            tx.amount for tx in self.open_transactions if tx.sender == participant
+            tx.amount for tx in self.__open_transactions if tx.sender == participant
         ]
         tx_sender.append(open_tx_sender)
         # using reduce instead of sum to show example reduce
@@ -132,7 +140,7 @@ class Blockchain:
 
         tx_recipient = [
             [tx.amount for tx in block.transactions if tx.recipient == participant] 
-            for block in self.chain
+            for block in self.__chain
         ]
         amount_received = sum([txn for tx_list in tx_recipient for txn in tx_list])
 
@@ -142,7 +150,7 @@ class Blockchain:
     def add_transaction(self, sender, recipient, amount=1.0):
         transaction = Transaction(sender, recipient, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
-            self.open_transactions.append(transaction)
+            self.__open_transactions.append(transaction)
             self.save_data()
             return True
         else:
@@ -153,18 +161,18 @@ class Blockchain:
     def mine_block(self):
         proof = self.proof_of_work()
         reward_transaction = Transaction('MINING', self.hosting_node_id, MINING_REWARD)
-        copied_transactions = self.open_transactions[:]
+        copied_transactions = self.__open_transactions[:]
         copied_transactions.append(reward_transaction)
         
         block = Block(
-            previous_hash=hu.hash_block(self.chain[-1]),
-            index=len(self.chain),
+            previous_hash=hu.hash_block(self.__chain[-1]),
+            index=len(self.__chain),
             transactions=copied_transactions,
             proof=proof
         )
-        self.chain.append(block)
+        self.__chain.append(block)
 
-        self.open_transactions = []
+        self.__open_transactions = []
         self.save_data()
 
 
