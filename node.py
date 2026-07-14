@@ -21,8 +21,7 @@ class Node:
 
     def print_verify_all_transactions(self):
         if (len(self.blockchain.open_transactions) > 0):
-            verifier = Verification()
-            if verifier.verify_all_transactions(self.blockchain.open_transactions, self.blockchain.get_balance):
+            if Verification.verify_all_transactions(self.blockchain.open_transactions, self.blockchain.get_balance):
                 print("All open transactions are valid.")
             else:
                 print("Some open transactions are invalid.")
@@ -47,7 +46,6 @@ class Node:
             print("4. Output the blockchain blocks")
             print("5. Output your balance")
             print("q. Quit")
-            verifier = Verification()
             match self.get_user_choice():
                 case "1":
                     if self.blockchain.add_transaction(self.hosting_node_id, *self.get_transaction_value()):
@@ -57,7 +55,7 @@ class Node:
                 case "2":
                     self.blockchain.mine_block()
                     self.print_blockchain_elements()
-                    if not verifier.verify_chain(self.blockchain.chain):
+                    if not Verification.verify_chain(self.blockchain.chain):
                         print("The blockchain has been manipulated!")
                     else:
                         print("The blockchain is valid.")
@@ -66,7 +64,7 @@ class Node:
                     self.print_verify_all_transactions()
                 case "4":
                     self.print_blockchain_elements()
-                    if not verifier.verify_chain(self.blockchain.chain):
+                    if not Verification.verify_chain(self.blockchain.chain):
                         print("The blockchain has been manipulated!")
                     else:
                         print("The blockchain is valid.")
