@@ -19,7 +19,7 @@ GENESIS_BLOCK = {
 class Blockchain:
     def __init__(self, hosting_node_id):
         self.__open_transactions = []
-        self.__chain = [Block(
+        self.chain = [Block(
             GENESIS_BLOCK['index'],
             GENESIS_BLOCK['previous_hash'],
             GENESIS_BLOCK['transactions'],
@@ -29,10 +29,13 @@ class Blockchain:
         self.hosting_node_id = hosting_node_id
         self.load_data()
 
-
-    def get_chain(self):
+    @property
+    def chain(self):
         return self.__chain[:]
-
+    
+    @chain.setter
+    def chain(self, value):
+        self.__chain = value
 
     def get_open_transactions(self):
         return self.__open_transactions[:]
@@ -54,7 +57,7 @@ class Blockchain:
                         block['timestamp']
                     )
                     updated_blockchain.append(updated_block)
-                self.__chain = updated_blockchain
+                self.chain = updated_blockchain
 
                 open_transactions = json.loads(file_content[1].strip())
                 updated_transactions = []
@@ -101,7 +104,7 @@ class Blockchain:
                     [tx.__dict__ for tx in block_el.transactions],
                     block_el.proof,
                     block_el.timestamp
-                ) for block_el in self.__chain]]   
+                ) for block_el in self.chain]]   
                 f.write(json.dumps(saveable_chain) + "\n")
 
                 savable_transactions = [
@@ -125,7 +128,7 @@ class Blockchain:
         participant = self.hosting_node_id
         tx_sender = [
             [tx.amount for tx in block.transactions if tx.sender == participant] 
-            for block in self.__chain
+            for block in self.chain
         ]
         open_tx_sender = [
             tx.amount for tx in self.__open_transactions if tx.sender == participant
@@ -140,7 +143,7 @@ class Blockchain:
 
         tx_recipient = [
             [tx.amount for tx in block.transactions if tx.recipient == participant] 
-            for block in self.__chain
+            for block in self.chain
         ]
         amount_received = sum([txn for tx_list in tx_recipient for txn in tx_list])
 
@@ -165,8 +168,8 @@ class Blockchain:
         copied_transactions.append(reward_transaction)
         
         block = Block(
-            previous_hash=hu.hash_block(self.__chain[-1]),
-            index=len(self.__chain),
+            previous_hash=hu.hash_block(self.chain[-1]),
+            index=len(self.chain),
             transactions=copied_transactions,
             proof=proof
         )

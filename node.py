@@ -28,7 +28,7 @@ class Node:
 
 
     def print_blockchain_elements(self):
-        for index, block in enumerate(self.blockchain.get_chain()):
+        for index, block in enumerate(self.blockchain.chain):
             print(f"Block {index}: {block}")
 
 
@@ -60,7 +60,7 @@ class Node:
                 case "2":
                     self.blockchain.mine_block()
                     self.print_blockchain_elements()
-                    if not Verification.verify_chain(self.blockchain.get_chain()):
+                    if not Verification.verify_chain(self.blockchain.chain):
                         print("The blockchain has been manipulated!")
                     else:
                         print("The blockchain is valid.")
@@ -68,7 +68,7 @@ class Node:
                     self.print_open_transactions()
                 case "4":
                     self.print_blockchain_elements()
-                    if not Verification.verify_chain(self.blockchain.get_chain()):
+                    if not Verification.verify_chain(self.blockchain.chain):
                         print("The blockchain has been manipulated!")
                     else:
                         print("The blockchain is valid.")
