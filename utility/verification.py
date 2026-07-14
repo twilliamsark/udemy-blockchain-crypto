@@ -1,11 +1,11 @@
-import hash_util as hu
+from utility.hash_util import hash_string, hash_block
 
 
 class Verification:
     @staticmethod
     def validate_proof(transactions, previous_hash, proof, difficulty=2):
         guess = (str([tx.to_ordered_dict() for tx in transactions]) + str(previous_hash) + str(proof))
-        guess_hash = hu.hash_string(guess)
+        guess_hash = hash_string(guess)
         return guess_hash[0:difficulty] == "0" * difficulty
 
     @staticmethod
@@ -22,7 +22,7 @@ class Verification:
         for index, block in enumerate(blockchain):
             if index == 0:
                 continue
-            if block.previous_hash != hu.hash_block(blockchain[index - 1]):
+            if block.previous_hash != hash_block(blockchain[index - 1]):
                 return False
             if not cls.validate_proof(block.transactions[:-1], block.previous_hash, block.proof):
                 return False

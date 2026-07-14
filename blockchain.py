@@ -1,10 +1,10 @@
 from functools import reduce
 import json
 
-import hash_util as hu
+from utility.hash_util import hash_block
+from utility.verification import Verification
 from block import Block
 from transaction import Transaction
-from verification import Verification
 
 
 MINING_REWARD = 10
@@ -117,7 +117,7 @@ class Blockchain:
 
     def proof_of_work(self):
         last_block = self.__chain[-1]
-        previous_hash = hu.hash_block(last_block)
+        previous_hash = hash_block(last_block)
         proof = 0
         while not Verification.validate_proof(self.__open_transactions, previous_hash, proof):
             proof += 1
@@ -168,7 +168,7 @@ class Blockchain:
         copied_transactions.append(reward_transaction)
         
         block = Block(
-            previous_hash=hu.hash_block(self.chain[-1]),
+            previous_hash=hash_block(self.chain[-1]),
             index=len(self.chain),
             transactions=copied_transactions,
             proof=proof
@@ -177,11 +177,4 @@ class Blockchain:
 
         self.__open_transactions = []
         self.save_data()
-
-
-
-
-
-
-
-
+        
