@@ -81,6 +81,8 @@ class Node:
 
         print('Done!')
 
-node = Node()
-node.listen_for_input()
+# only run this if the file is executed directly, not imported
+if __name__ == '__main__':
+    node = Node()
+    node.listen_for_input()
         
