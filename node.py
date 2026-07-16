@@ -51,6 +51,7 @@ class Node:
             print("4. Output the blockchain blocks")
             print("5. Create a new wallet")
             print("6. Load wallet")
+            print("7. Save wallet")
             print("q. Quit")
             match self.get_user_choice():
                 case "1":
@@ -81,7 +82,11 @@ class Node:
                     self.wallet.create_keys()
                     self.blockchain = Blockchain(self.wallet.public_key)
                 case "6":
-                    pass
+                    self.wallet.load_keys()
+                    self.blockchain = Blockchain(self.wallet.public_key)
+                case "7":
+                    if self.wallet:
+                        self.wallet.save_keys()
                 case "q":
                     break
                 case _:
