@@ -16,3 +16,10 @@ class Transaction(Printable):
             ('amount', self.amount)
         ])
     
+
+    def __repr__(self):
+        return str({
+            'sender': '...' + self.sender[-10:] if self.sender != 'MINING' else 'MINING',
+            'recipient': '...' + self.recipient[-10:],
+            'amount': self.amount
+        })

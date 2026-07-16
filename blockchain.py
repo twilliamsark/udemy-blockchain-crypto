@@ -151,6 +151,8 @@ class Blockchain:
 
 
     def add_transaction(self, sender, recipient, amount=1.0):
+        if self.hosting_node_id == None:
+            return False
         transaction = Transaction(sender, recipient, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
@@ -162,6 +164,8 @@ class Blockchain:
 
 
     def mine_block(self):
+        if self.hosting_node_id == None:
+            return False
         proof = self.proof_of_work()
         reward_transaction = Transaction('MINING', self.hosting_node_id, MINING_REWARD)
         copied_transactions = self.__open_transactions[:]
@@ -177,4 +181,4 @@ class Blockchain:
 
         self.__open_transactions = []
         self.save_data()
-        
+        return True

@@ -1,13 +1,13 @@
 from utility.verification import Verification
 from blockchain import Blockchain
-
+from wallet import Wallet
 from uuid import uuid4
 
 class Node:
     def __init__(self):
-        # self.hosting_node_id = str(uuid4())
-        self.hosting_node_id = 'Todd' # TODO: until we create the Wallet
-        self.blockchain = Blockchain(self.hosting_node_id)
+        self.wallet = Wallet()
+        self.wallet.create_keys()
+        self.blockchain = Blockchain(self.wallet.public_key)
 
     def get_user_choice(self):
         return input("Your choice: ")
@@ -28,8 +28,9 @@ class Node:
 
 
     def print_blockchain_elements(self):
-        for index, block in enumerate(self.blockchain.chain):
-            print(f"Block {index}: {block}")
+        if self.blockchain:
+            for index, block in enumerate(self.blockchain.chain):
+                print(f"Block {index}: {block}")
 
 
     def print_open_transactions(self):
@@ -38,7 +39,7 @@ class Node:
 
 
     def print_balance(self):
-        print(f"Your balance for {self.hosting_node_id} is: {self.blockchain.get_balance()}")
+        print(f"Your balance for ...{self.wallet.public_key[-10:] if self.wallet else None} is: {self.blockchain.get_balance()}")
 
 
     def listen_for_input(self):
@@ -48,22 +49,26 @@ class Node:
             print("2. Mine a new block")
             print("3. Output the open transactions")
             print("4. Output the blockchain blocks")
-            print("5. Output your balance")
+            print("5. Create a new wallet")
+            print("6. Load wallet")
             print("q. Quit")
             match self.get_user_choice():
                 case "1":
-                    if self.blockchain.add_transaction(self.hosting_node_id, *self.get_transaction_value()):
+                    if self.blockchain.add_transaction(self.wallet.public_key if self.wallet else None, *self.get_transaction_value()):
                         print("Transaction added successfully.")
                     self.print_open_transactions()
                     self.print_verify_all_transactions()
                     self.print_balance()
                 case "2":
-                    self.blockchain.mine_block()
-                    self.print_blockchain_elements()
-                    if not Verification.verify_chain(self.blockchain.chain):
-                        print("The blockchain has been manipulated!")
+                    if self.blockchain and self.blockchain.mine_block():
+                        self.print_blockchain_elements()
+                        self.print_balance()
+                        if not Verification.verify_chain(self.blockchain.chain):
+                            print("The blockchain has been manipulated!")
+                        else:
+                            print("The blockchain is valid.")
                     else:
-                        print("The blockchain is valid.")
+                        print("Mining failed. Make sure you have a wallet and sufficient balance.")
                 case "3":
                     self.print_open_transactions()
                 case "4":
@@ -73,7 +78,10 @@ class Node:
                     else:
                         print("The blockchain is valid.")
                 case "5":
-                    self.print_balance()
+                    self.wallet.create_keys()
+                    self.blockchain = Blockchain(self.wallet.public_key)
+                case "6":
+                    pass
                 case "q":
                     break
                 case _:
