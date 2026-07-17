@@ -7,6 +7,7 @@ class Node:
     def __init__(self):
         self.wallet = Wallet()
         self.wallet.create_keys()
+        print(f"Current wallet {self.wallet}")
         self.blockchain = Blockchain(self.wallet.public_key)
 
     def get_user_choice(self):
@@ -55,7 +56,9 @@ class Node:
             print("q. Quit")
             match self.get_user_choice():
                 case "1":
-                    if self.blockchain.add_transaction(self.wallet.public_key if self.wallet else None, *self.get_transaction_value()):
+                    recipient, amount = self.get_transaction_value()
+                    signature = self.wallet.sign_transaction(self.wallet.public_key, recipient, amount)
+                    if self.blockchain.add_transaction(self.wallet.public_key, recipient, amount, signature):
                         print("Transaction added successfully.")
                     self.print_open_transactions()
                     self.print_verify_all_transactions()
@@ -69,7 +72,7 @@ class Node:
                         else:
                             print("The blockchain is valid.")
                     else:
-                        print("Mining failed. Make sure you have a wallet and sufficient balance.")
+                        print("Mining failed!")
                 case "3":
                     self.print_open_transactions()
                 case "4":
@@ -81,9 +84,11 @@ class Node:
                 case "5":
                     self.wallet.create_keys()
                     self.blockchain = Blockchain(self.wallet.public_key)
+                    print(f"New wallet {self.wallet}")
                 case "6":
                     self.wallet.load_keys()
                     self.blockchain = Blockchain(self.wallet.public_key)
+                    print(f"Loaded wallet {self.wallet}")
                 case "7":
                     if self.wallet:
                         self.wallet.save_keys()
