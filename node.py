@@ -13,6 +13,18 @@ CORS(app)
 def get_ui():
     return 'This works!'
 
+@app.route('/mine', methods=['POST'])
+def mine_block():
+    return mine()
+def mine():
+    if blockchain.mine_block():
+        return jsonify({'message': 'Block mined successfully.'}), 200
+    else:
+        return jsonify({
+            'message': 'Mining failed.',
+            'wallet_set_up': wallet.public_key != None
+        }), 500
+
 @app.route('/chain', methods=['GET'])
 def get_chain():
     chain_snapshot = blockchain.chain
