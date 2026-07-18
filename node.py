@@ -11,14 +11,18 @@ CORS(app)
 
 @app.route('/', methods=['GET'])
 def get_ui():
-    return 'This works!'
+    return jsonify({'message': 'Welcome to the blockchain node API.'}), 200
 
 @app.route('/mine', methods=['POST'])
 def mine_block():
-    return mine()
-def mine():
-    if blockchain.mine_block():
-        return jsonify({'message': 'Block mined successfully.'}), 200
+    block = blockchain.mine_block()
+    if block != None:
+        dict_block = block.__dict__.copy()
+        dict_block['transactions'] = [tx.__dict__.copy() for tx in dict_block['transactions']]
+        return jsonify({
+            'message': 'Block mined successfully.',
+            'block':  dict_block
+        }), 201
     else:
         return jsonify({
             'message': 'Mining failed.',
