@@ -9,6 +9,41 @@ wallet.load_keys()
 blockchain = Blockchain(wallet.public_key)
 CORS(app)
 
+@app.route('/wallet', methods=['POST'])
+def create_keys():
+    wallet.create_keys()
+    if wallet.save_keys():
+        global blockchain
+        blockchain = Blockchain(wallet.public_key)
+        return jsonify({
+            'message': 'Keys created successfully.',
+            'wallet_set_up': wallet.public_key != None
+        }), 201
+    else:
+        return jsonify({
+            'message': 'Failed to create keys.',
+            'wallet_set_up': wallet.public_key != None
+        }), 500
+
+@app.route('/wallet', methods=['GET'])
+def load_keys():
+    if wallet.load_keys():
+        global blockchain
+        blockchain = Blockchain(wallet.public_key)
+        return jsonify({
+            'message': 'Keys loaded successfully.',
+            'wallet_set_up': wallet.public_key != None
+        }), 200
+    else:
+        return jsonify({
+            'message': 'Failed to load keys.',
+            'wallet_set_up': wallet.public_key != None
+        }), 500
+
+@app.route('/keys', methods=['GET'])
+def get_keys():
+    return load_keys()
+
 @app.route('/', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
