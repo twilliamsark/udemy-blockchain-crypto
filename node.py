@@ -5,7 +5,7 @@ from blockchain import Blockchain
 
 app = Flask(__name__)
 wallet = Wallet()
-wallet.load_keys()
+# wallet.load_keys()
 blockchain = Blockchain(wallet.public_key)
 CORS(app)
 
@@ -18,7 +18,8 @@ def create_keys():
         return jsonify({
             'message': 'Keys created successfully.',
             'public_key': wallet.public_key,
-            'private_key': wallet.private_key
+            'private_key': wallet.private_key,
+            'balance': blockchain.get_balance()
         }), 201
     else:
         return jsonify({
@@ -34,7 +35,8 @@ def load_keys():
         return jsonify({
             'message': 'Keys loaded successfully.',
             'public_key': wallet.public_key,
-            'private_key': wallet.private_key
+            'private_key': wallet.private_key,
+            'balance': blockchain.get_balance()
         }), 200
     else:
         return jsonify({
@@ -44,10 +46,16 @@ def load_keys():
 @app.route('/balance', methods=['GET'])
 def get_balance():
     balance = blockchain.get_balance()
-    return jsonify({
-        'message': 'Balance fetched successfully.',
-        'balance': balance
-    }), 200
+    if balance != None:
+        return jsonify({
+            'message': 'Balance fetched successfully.',
+            'balance': balance
+        }), 200
+    else:
+        return jsonify({
+            'message': 'Failed to fetch balance.',
+            'wallet_set_up': wallet.public_key != None
+        }), 500
 
 @app.route('/', methods=['GET'])
 def get_ui():
