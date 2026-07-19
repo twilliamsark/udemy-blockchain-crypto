@@ -17,7 +17,8 @@ def create_keys():
         blockchain = Blockchain(wallet.public_key)
         return jsonify({
             'message': 'Keys created successfully.',
-            'wallet_set_up': wallet.public_key != None
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key
         }), 201
     else:
         return jsonify({
@@ -32,17 +33,21 @@ def load_keys():
         blockchain = Blockchain(wallet.public_key)
         return jsonify({
             'message': 'Keys loaded successfully.',
-            'wallet_set_up': wallet.public_key != None
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key
         }), 200
     else:
         return jsonify({
-            'message': 'Failed to load keys.',
-            'wallet_set_up': wallet.public_key != None
+            'message': 'Failed to load keys.'
         }), 500
 
-@app.route('/keys', methods=['GET'])
-def get_keys():
-    return load_keys()
+@app.route('/balance', methods=['GET'])
+def get_balance():
+    balance = blockchain.get_balance()
+    return jsonify({
+        'message': 'Balance fetched successfully.',
+        'balance': balance
+    }), 200
 
 @app.route('/', methods=['GET'])
 def get_ui():
@@ -56,7 +61,8 @@ def mine_block():
         dict_block['transactions'] = [tx.__dict__.copy() for tx in dict_block['transactions']]
         return jsonify({
             'message': 'Block mined successfully.',
-            'block':  dict_block
+            'block':  dict_block,
+            'balance': blockchain.get_balance()
         }), 201
     else:
         return jsonify({
