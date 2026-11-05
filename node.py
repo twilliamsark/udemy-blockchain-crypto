@@ -100,6 +100,8 @@ def add_transaction():
         values['recipient'],
         values['amount']
     )
+    if signature == None:
+        return jsonify({'message': 'Failed to sign the transaction.'}, 500)
     success = blockchain.add_transaction(
         wallet.public_key,
         values['recipient'],
@@ -107,7 +109,10 @@ def add_transaction():
         signature
     )
     if success:
-        return jsonify({'message': 'Transaction added successfully.'}), 201
+        return jsonify({
+            'message': 'Transaction added successfully.',
+            'balance': blockchain.get_balance()
+        }), 201
     else:
         return jsonify({'message': 'Transaction failed.'}), 500
 

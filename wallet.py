@@ -26,8 +26,12 @@ class Wallet(Printable):
             try:
                 with open('wallet.txt', 'w') as f:
                     f.write(f'{self.public_key}\n{self.private_key}')
+                return True
             except (IOError, IndexError):
                 print("Saving wallet failed...")
+                return False
+        else:
+            return False
 
     def load_keys(self):
         try:
@@ -49,6 +53,8 @@ class Wallet(Printable):
         )
 
     def sign_transaction(self, sender, recipient, amount):
+        if self.private_key == None:
+            return None
         private_key = RSA.import_key(binascii.unhexlify(self.private_key))
         signer = PKCS1_v1_5.new(private_key)
         h = SHA256.new(f'{sender}{recipient}{amount}'.encode('utf-8'))

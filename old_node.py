@@ -91,7 +91,10 @@ class OldNode:
                     print(f"Loaded wallet {self.wallet}")
                 case "7":
                     if self.wallet:
-                        self.wallet.save_keys()
+                        if self.wallet.save_keys():
+                            print('Wallet saved')
+                        else:
+                            print('wallet not saved')
                 case "q":
                     break
                 case _:
