@@ -89,6 +89,8 @@ def get_chain():
 # curl --json '{"recipient": "John Doe", "amount": 3}' http://localhost:5001/transaction
 @app.route('/transaction', methods=['POST'])
 def add_transaction():
+    if wallet.public_key == None:
+        return jsonify({'message': 'Wallet not set up.'}), 400
     values = request.get_json()
     if not values:
         return jsonify({'message': 'No input data provided.'}), 400

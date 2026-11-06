@@ -15,7 +15,7 @@ GENESIS_BLOCK = {
     'proof': 100
 }
 
-
+# hosting_node_id is the public key of the node
 class Blockchain:
     def __init__(self, hosting_node_id):
         self.__open_transactions = []
