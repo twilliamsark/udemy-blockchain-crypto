@@ -59,6 +59,7 @@ def get_balance():
 
 @app.route('/', methods=['GET'])
 def get_ui():
+    # return send_from_directory('ui', 'node_placeholder.html')
     return send_from_directory('ui', 'node.html')
 
 @app.route('/mine', methods=['POST'])
@@ -84,7 +85,7 @@ def get_chain():
     dict_chain = [block.__dict__.copy() for block in chain_snapshot]
     for block in dict_chain:
         block['transactions'] = [tx.__dict__.copy() for tx in block['transactions']]
-    return jsonify({'chain': dict_chain}), 200
+    return jsonify(dict_chain), 200
 
 # curl --json '{"recipient": "John Doe", "amount": 3}' http://localhost:5001/transaction
 @app.route('/transaction', methods=['POST'])
@@ -122,7 +123,7 @@ def add_transaction():
 def get_open_transactions():
     open_transactions = blockchain.get_open_transactions()
     dict_transactions = [tx.__dict__.copy() for tx in open_transactions]
-    return jsonify({'open_transactions': dict_transactions}), 200
+    return jsonify(dict_transactions), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

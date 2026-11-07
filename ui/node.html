@@ -393,6 +393,8 @@
                 .then(function (response) {
                   vm.blockchain = response.data;
                   vm.dataLoading = false;
+                  console.log('** LOADED CHAIN');
+                  console.log(vm);
                 })
                 .catch(function (error) {
                   vm.dataLoading = false;
@@ -406,6 +408,8 @@
                 .then(function (response) {
                   vm.openTransactions = response.data;
                   vm.dataLoading = false;
+                  console.log('** LOADED TXS');
+                  console.log(vm);
                 })
                 .catch(function (error) {
                   vm.dataLoading = false;
