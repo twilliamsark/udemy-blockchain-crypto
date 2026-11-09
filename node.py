@@ -62,6 +62,10 @@ def get_ui():
     # return send_from_directory('ui', 'node_placeholder.html')
     return send_from_directory('ui', 'node.html')
 
+@app.route('/network', methods=['GET'])
+def get_node_network():
+    return send_from_directory('ui', 'network.html')
+
 @app.route('/mine', methods=['POST'])
 def mine_block():
     block = blockchain.mine_block()
@@ -124,6 +128,33 @@ def get_open_transactions():
     open_transactions = blockchain.get_open_transactions()
     dict_transactions = [tx.__dict__.copy() for tx in open_transactions]
     return jsonify(dict_transactions), 200
+
+@app.route('/node', methods=['POST'])
+def add_node():
+    values = request.get_json()
+    if 'node' in values:
+        blockchain.add_peer_node(values['node'])
+        return jsonify({
+            'message': 'Node added.',
+            'all_nodes': blockchain.get_peer_nodes()
+            }), 201
+    return jsonify({'message': 'No node provided.'}), 400
+
+# /node/localhost:5002
+@app.route('/node/<node_url>', methods=['DELETE'])
+def remove_node(node_url):
+    if node_url == '' or node_url == None:
+        return jsonify({'message': 'No node provided.'}), 400
+    else:
+        blockchain.remove_peer_node(node_url)
+        return jsonify({
+            'message': 'Node removed.',
+            'all_nodes': blockchain.get_peer_nodes()
+            }), 201
+
+@app.route('/nodes', methods=['GET'])
+def get_nodes():
+    return jsonify({'all_nodes': blockchain.get_peer_nodes()}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

@@ -27,6 +27,7 @@ class Blockchain:
             0
         )]
         self.hosting_node_id = hosting_node_id
+        self.__peer_nodes = set()
         self.load_data()
 
     @property
@@ -72,7 +73,9 @@ class Blockchain:
                     converted_tx = Transaction(tx['sender'], tx['recipient'], tx['amount'], tx['signature'])
                     updated_transactions.append(converted_tx)
                 self.__open_transactions = updated_transactions
-
+                peer_nodes = json.loads(file_content[2].strip())
+                self.__peer_nodes = set(peer_nodes)
+                
         except (IOError, IndexError):
             pass
 
@@ -118,6 +121,7 @@ class Blockchain:
                     transaction.__dict__ for transaction in self.__open_transactions
                 ]
                 f.write(json.dumps(savable_transactions) + "\n")
+                f.write(json.dumps(list(self.__peer_nodes)))
         except IOError:
             print("Saving failed!")
 
@@ -199,3 +203,19 @@ class Blockchain:
         self.__open_transactions = []
         self.save_data()
         return block
+
+    def add_peer_node(self, node):
+        """ Add a peer node 
+        
+            Agrugments
+                node: the node to add
+        """
+        self.__peer_nodes.add(node)
+        self.save_data()
+
+    def remove_peer_node(self, node):
+        self.__peer_nodes.discard(node)
+        self.save_data()
+
+    def get_peer_nodes(self):
+        return list(self.__peer_nodes)
