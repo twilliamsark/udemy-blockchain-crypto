@@ -6,12 +6,15 @@ import binascii
 from utility.printable import Printable
 
 class Wallet(Printable):
-    def __init__(self):
+    def __init__(self, port):
         self.private_key = None
         self.public_key = None
+        self.port = port
+        self.filename = f'wallet_{port}.txt'
 
     def __repr__(self):
         return str({
+            'port': self.port,
             'public_key': '...' + self.public_key[-15:] if self.public_key else '<no public key>',
             'private_key': '...' if self.private_key else '<no private key>'
         })
@@ -24,7 +27,7 @@ class Wallet(Printable):
     def save_keys(self):
         if self.public_key != None and self.private_key != None:
             try:
-                with open('wallet.txt', 'w') as f:
+                with open(self.filename, 'w') as f:
                     f.write(f'{self.public_key}\n{self.private_key}')
                 return True
             except (IOError, IndexError):
@@ -35,7 +38,7 @@ class Wallet(Printable):
 
     def load_keys(self):
         try:
-            with open('wallet.txt', 'r') as f:
+            with open(self.filename, 'r') as f:
                 keys = f.read().splitlines()
                 self.public_key = keys[0]
                 self.private_key = keys[1]

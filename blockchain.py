@@ -17,7 +17,7 @@ GENESIS_BLOCK = {
 
 # hosting_node_id is the public key of the node
 class Blockchain:
-    def __init__(self, hosting_node_id):
+    def __init__(self, hosting_node_id, port):
         self.__open_transactions = []
         self.chain = [Block(
             GENESIS_BLOCK['index'],
@@ -28,6 +28,8 @@ class Blockchain:
         )]
         self.hosting_node_id = hosting_node_id
         self.__peer_nodes = set()
+        self.port = port
+        self.filename = f'blockchain_{port}.txt'
         self.load_data()
 
     @property
@@ -44,7 +46,7 @@ class Blockchain:
 
     def load_data(self):
         try:
-            with open('blockchain.txt', mode='r') as f:
+            with open(self.filename, mode='r') as f:
                 file_content = f.readlines()
                 blockchain = json.loads(file_content[0].strip())
                 updated_blockchain = []
@@ -82,7 +84,7 @@ class Blockchain:
 
     def save_data(self):
         try:
-            with open('blockchain.txt', mode='w') as f:
+            with open(self.filename, mode='w') as f:
                 # dict_chain = []
                 # for block_el in blockchain:
                 #     dict_txs = []

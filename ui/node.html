@@ -314,7 +314,9 @@
               .then(function (response) {
                 vm.error = null;
                 vm.success =
-                  'Created Wallet! Public Key: ' +
+                  'Created Wallet! Port: ' +
+                  response.data.port +
+                  ', Public Key: ' +
                   response.data.public_key +
                   ', Private Key: ' +
                   response.data.private_key;
@@ -341,7 +343,9 @@
               .then(function (response) {
                 vm.error = null;
                 vm.success =
-                  'Loaded Wallet! Public Key: ' +
+                  'Loaded Wallet! Port: ' +
+                  response.data.port +
+                  '\n, Public Key: ' +
                   response.data.public_key +
                   ', Private Key: ' +
                   response.data.private_key;

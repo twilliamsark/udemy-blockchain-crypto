@@ -3,10 +3,9 @@ from flask_cors import CORS
 from wallet import Wallet
 from blockchain import Blockchain
 
+import sys
+
 app = Flask(__name__)
-wallet = Wallet()
-# wallet.load_keys()
-blockchain = Blockchain(wallet.public_key)
 CORS(app)
 
 @app.route('/wallet', methods=['POST'])
@@ -14,9 +13,10 @@ def create_keys():
     wallet.create_keys()
     if wallet.save_keys():
         global blockchain
-        blockchain = Blockchain(wallet.public_key)
+        blockchain = Blockchain(wallet.public_key, port)
         return jsonify({
             'message': 'Keys created successfully.',
+            'port': port,
             'public_key': wallet.public_key,
             'private_key': wallet.private_key,
             'balance': blockchain.get_balance()
@@ -31,9 +31,10 @@ def create_keys():
 def load_keys():
     if wallet.load_keys():
         global blockchain
-        blockchain = Blockchain(wallet.public_key)
+        blockchain = Blockchain(wallet.public_key, port)
         return jsonify({
             'message': 'Keys loaded successfully.',
+            'port': port,
             'public_key': wallet.public_key,
             'private_key': wallet.private_key,
             'balance': blockchain.get_balance()
@@ -58,12 +59,12 @@ def get_balance():
         }), 500
 
 @app.route('/', methods=['GET'])
-def get_ui():
+def get_node_ui():
     # return send_from_directory('ui', 'node_placeholder.html')
     return send_from_directory('ui', 'node.html')
 
 @app.route('/network', methods=['GET'])
-def get_node_network():
+def get_network_ui():
     return send_from_directory('ui', 'network.html')
 
 @app.route('/mine', methods=['POST'])
@@ -126,6 +127,8 @@ def add_transaction():
 @app.route('/transactions', methods=['GET'])
 def get_open_transactions():
     open_transactions = blockchain.get_open_transactions()
+    print('Open txs:', open_transactions)
+    print('blockchain', blockchain.filename)
     dict_transactions = [tx.__dict__.copy() for tx in open_transactions]
     return jsonify(dict_transactions), 200
 
@@ -157,4 +160,14 @@ def get_nodes():
     return jsonify({'all_nodes': blockchain.get_peer_nodes()}), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    global port
+    global wallet
+    global blockchain
+    port = 5001
+    if len(sys.argv) > 1:
+        print('Port:', sys.argv[1])
+        port = int(sys.argv[1])
+    wallet = Wallet(port)
+    blockchain = Blockchain(wallet.public_key, port)
+    print('Starting node...')
+    app.run(host='0.0.0.0', port=port, debug=True)

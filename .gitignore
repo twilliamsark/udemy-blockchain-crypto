@@ -1,8 +1,8 @@
 __pycache__
 demo.txt
 conversation_data.pkl
-blockchain.txt
+blockchain*.txt
 oop
 .ipynb_checkpoints
-wallet.txt
+wallet*.txt
 .DS_Store
