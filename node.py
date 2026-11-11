@@ -92,6 +92,26 @@ def get_chain():
         block['transactions'] = [tx.__dict__.copy() for tx in block['transactions']]
     return jsonify(dict_chain), 200
 
+@app.route('/broadcast-transaction', methods=['POST'])
+def broadcast_transaction():
+    if wallet.public_key == None:
+        return jsonify({'message': 'Wallet not set up.'}), 400
+    values = request.get_json()
+    if not values:
+        return jsonify({'message': 'No input data provided.'}), 400
+    required_fields = ['sender', 'recipient', 'amount', 'signature']
+    if not all(field in values for field in required_fields):
+        return jsonify({'message': 'Missing fields.'}), 400
+    success = blockchain.add_transaction(
+        values['sender'], values['recipient'], values['amount'], values['signature'], is_receiving=True
+    )
+    if success:
+        return jsonify({
+            'message': 'Transaction broadcast successfully.'
+        }), 201
+    else:
+        return jsonify({'message': 'Transaction failed.'}), 500
+
 # curl --json '{"recipient": "John Doe", "amount": 3}' http://localhost:5001/transaction
 @app.route('/transaction', methods=['POST'])
 def add_transaction():
@@ -169,5 +189,5 @@ if __name__ == '__main__':
         port = int(sys.argv[1])
     wallet = Wallet(port)
     blockchain = Blockchain(wallet.public_key, port)
-    print('Starting node...')
+    print('Starting node on', port)
     app.run(host='0.0.0.0', port=port, debug=True)

@@ -1,5 +1,7 @@
 from functools import reduce
+
 import json
+import requests
 
 from utility.hash_util import hash_block
 from utility.verification import Verification
@@ -137,10 +139,14 @@ class Blockchain:
         return proof
 
 
-    def get_balance(self):
-        if self.hosting_node_id == None:
-            return None
-        participant = self.hosting_node_id
+    def get_balance(self, sender=None):
+        if sender == None:
+            if self.hosting_node_id == None:
+                return None
+            participant = self.hosting_node_id
+        else:
+            participant = sender
+
         tx_sender = [
             [tx.amount for tx in block.transactions if tx.sender == participant] 
             for block in self.chain
@@ -165,7 +171,7 @@ class Blockchain:
         return amount_received - amount_sent
 
 
-    def add_transaction(self, sender, recipient, amount, signature):
+    def add_transaction(self, sender, recipient, amount, signature, is_receiving=False):
         if self.hosting_node_id == None:
             print("No hosting node ID set. Transaction cannot be added.")
             return False
@@ -173,10 +179,30 @@ class Blockchain:
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
             self.save_data()
+            if not is_receiving:
+                return self.broadcast_transaction(transaction)
             return True
         else:
             print(f"Transaction {transaction} is invalid due to insufficient balance or failed signature verification.")
             return False
+
+
+    def broadcast_transaction(self, tx):
+        for node in self.__peer_nodes:
+            print('Notifying node', node)
+            url = 'http://{}/broadcast-transaction'.format(node)
+            print('URL:', url)
+            try:
+                response = requests.post(url, json={'sender': tx.sender, 'recipient': tx.recipient, 'amount': tx.amount, 'signature': tx.signature})
+                print('Response:', response.status_code)
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Failed to notify node of transaction', node)
+                    # this seems wrong to me. maybe should continue instead of return False
+                    return False
+            except requests.exceptions.ConnectionError:
+                print('Failed to connect to', node)
+                continue
+        return True
 
 
     def mine_block(self):

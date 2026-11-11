@@ -12,7 +12,7 @@ class Verification:
     def verify_transaction(transaction, get_balance, checkFunds=True):
         if checkFunds == False:
             return Wallet.verify_transaction(transaction)
-        sender_balance = get_balance()
+        sender_balance = get_balance(transaction.sender)
         return sender_balance >= transaction.amount and Wallet.verify_transaction(transaction)
 
     @classmethod
